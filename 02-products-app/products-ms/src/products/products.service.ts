@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   OnModuleInit,
@@ -54,8 +56,27 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    if (Object.keys(updateProductDto).length === 0) {
+      throw new BadRequestException('Product data is required');
+    }
+    try {
+      const updatedProduct = await this.product.update({
+        where: { id },
+        data: updateProductDto,
+      });
+
+      return updatedProduct;
+    } catch (error) {
+      this.logger.error(error);
+      if (error.code === 'P2025') {
+        // https://www.prisma.io/docs/orm/reference/error-reference#p2025
+        throw new NotFoundException(`Product with id #${id} not found`);
+      }
+      throw new InternalServerErrorException(
+        `Product with id #${id} could not be updated: ${error.message}`,
+      );
+    }
   }
 
   remove(id: number) {
