@@ -27,13 +27,18 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
   async findAll(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
 
-    const totalProducts = await this.product.count();
+    const totalProducts = await this.product.count({
+      where: { available: true },
+    });
     const lastPage = Math.ceil(totalProducts / limit);
 
     return {
       data: await this.product.findMany({
         take: limit,
         skip: (page - 1) * limit,
+        where: {
+          available: true,
+        },
       }),
       meta: {
         totalProducts,
@@ -47,6 +52,7 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       .findUniqueOrThrow({
         where: {
           id,
+          available: true,
         },
       })
       .catch((error) => {
@@ -85,6 +91,28 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
         where: { id },
       });
       return deletedProduct;
+    } catch (error) {
+      this.logger.error(error);
+
+      if (error.code === 'P2025') {
+        // https://www.prisma.io/docs/orm/reference/error-reference#p2025
+        throw new NotFoundException(`Product with id #${id} not found`);
+      }
+      throw new InternalServerErrorException(
+        `Product with id #${id} could not be deleted: ${error.message}`,
+      );
+    }
+  }
+
+  async softRemove(id: number) {
+    try {
+      const softDeletedProduct = await this.product.update({
+        where: { id },
+        data: {
+          available: false,
+        },
+      });
+      return softDeletedProduct;
     } catch (error) {
       this.logger.error(error);
 
