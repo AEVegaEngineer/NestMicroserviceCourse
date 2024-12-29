@@ -1,55 +1,52 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseIntPipe,
-  BadRequestException,
-} from '@nestjs/common';
+import { Controller, ParseIntPipe } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationDto } from 'src/common/dto';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
+  // @Post()
+  @MessagePattern({ cmd: 'create_product' })
+  create(@Payload() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
   }
 
-  @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
+  // @Get()
+  @MessagePattern({ cmd: 'find_all_products' })
+  findAll(@Payload() paginationDto: PaginationDto) {
     // return paginationDto;
     return this.productsService.findAll(paginationDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  // @Get(':id')
+  @MessagePattern({ cmd: 'find_product_by_id' })
+  findOne(@Payload('id', ParseIntPipe) id: number) {
+    return this.productsService.findOne(id);
   }
 
-  @Patch(':id')
+  // @Patch(':id')
+  @MessagePattern({ cmd: 'update_product' })
   update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateProductDto: UpdateProductDto,
+    // @Param('id', ParseIntPipe) id: number,
+    // @Body() updateProductDto: UpdateProductDto,
+    @Payload() updateProductDto: UpdateProductDto,
   ) {
-    return this.productsService.update(id, updateProductDto);
+    return this.productsService.update(updateProductDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  // @Delete(':id')
+  @MessagePattern({ cmd: 'delete_product' })
+  remove(@Payload('id', ParseIntPipe) id: number) {
     return this.productsService.remove(id);
   }
 
-  @Delete('/soft/:id')
-  softRemove(@Param('id', ParseIntPipe) id: number) {
+  // @Delete('/soft/:id')
+  @MessagePattern({ cmd: 'soft_delete_product' })
+  softRemove(@Payload('id', ParseIntPipe) id: number) {
     return this.productsService.softRemove(id);
   }
 }

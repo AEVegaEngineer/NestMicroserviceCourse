@@ -62,13 +62,13 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     return product;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto) {
+  async update(updateProductDto: UpdateProductDto) {
     if (Object.keys(updateProductDto).length === 0) {
       throw new BadRequestException('Product data is required');
     }
     try {
       const updatedProduct = await this.product.update({
-        where: { id },
+        where: { id: updateProductDto.id },
         data: updateProductDto,
       });
 
@@ -77,10 +77,12 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       this.logger.error(error);
       if (error.code === 'P2025') {
         // https://www.prisma.io/docs/orm/reference/error-reference#p2025
-        throw new NotFoundException(`Product with id #${id} not found`);
+        throw new NotFoundException(
+          `Product with id #${updateProductDto.id} not found`,
+        );
       }
       throw new InternalServerErrorException(
-        `Product with id #${id} could not be updated: ${error.message}`,
+        `Product with id #${updateProductDto.id} could not be updated: ${error.message}`,
       );
     }
   }
