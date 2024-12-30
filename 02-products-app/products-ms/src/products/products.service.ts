@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { RpcException } from '@nestjs/microservices';
 import { PrismaClient } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto';
 
@@ -57,7 +58,10 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       })
       .catch((error) => {
         this.logger.error(error);
-        throw new NotFoundException(`Product with id #${id} not found`);
+        throw new RpcException({
+          ...error,
+          message: `Product with id #${id} not found`,
+        });
       });
     return product;
   }
