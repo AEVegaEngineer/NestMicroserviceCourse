@@ -17,6 +17,8 @@ async function bootstrap() {
     }),
   );
   await app.listen();
-  logger.log(`Orders microservice running on port ${envs.port}`);
+  logger.log(
+    `Orders microservice running on port ${envs.port} with transport layer TCP`,
+  );
 }
 bootstrap();
