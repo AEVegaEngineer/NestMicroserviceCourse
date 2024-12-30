@@ -8,9 +8,9 @@ import {
   Patch,
   ParseIntPipe,
 } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { ClientProxy, Payload } from '@nestjs/microservices';
 import { ORDERS_SERVICE } from 'src/config';
+import { CreateOrderDto } from './dto';
 
 @Controller('orders')
 export class OrdersController {
