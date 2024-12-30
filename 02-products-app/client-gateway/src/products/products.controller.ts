@@ -11,9 +11,11 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { catchError, firstValueFrom, throwError } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { PaginationDto } from 'src/common/dto';
 import { PRODUCTS_SERVICE } from 'src/config';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -21,9 +23,15 @@ export class ProductsController {
     @Inject(PRODUCTS_SERVICE) private readonly productsService: ClientProxy,
   ) {}
   @Post()
-  createProduct(@Body() createProductDto) {
-    return 'Crea un producto';
-    // { cmd: 'create_product' }
+  async createProduct(@Body() createProductDto: CreateProductDto) {
+    try {
+      const product = await firstValueFrom(
+        this.productsService.send({ cmd: 'create_product' }, createProductDto),
+      );
+      return product;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   @Get()
@@ -56,20 +64,44 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto) {
-    // { cmd: 'update_product' }
-    return 'Actualiza un producto';
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateProductDto: UpdateProductDto,
+  ) {
+    try {
+      const product = await firstValueFrom(
+        this.productsService.send(
+          { cmd: 'update_product' },
+          { id, ...updateProductDto },
+        ),
+      );
+      return product;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    //{ cmd: 'delete_product' }
-    return 'Elimina un producto';
+  async remove(@Param('id') id: string) {
+    try {
+      const product = await firstValueFrom(
+        this.productsService.send({ cmd: 'delete_product' }, { id }),
+      );
+      return product;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   @Delete('soft/:id')
-  softRemove(@Param('id') id: string) {
-    //{ cmd: 'soft_delete_product' }
-    return 'Desactiva un producto';
+  async softRemove(@Param('id') id: string) {
+    try {
+      const product = await firstValueFrom(
+        this.productsService.send({ cmd: 'soft_delete_product' }, { id }),
+      );
+      return product;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 }

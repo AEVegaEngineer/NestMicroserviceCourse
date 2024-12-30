@@ -35,7 +35,7 @@ export class ProductsController {
     // @Body() updateProductDto: UpdateProductDto,
     @Payload() updateProductDto: UpdateProductDto,
   ) {
-    return this.productsService.update(updateProductDto);
+    return this.productsService.update(updateProductDto.id, updateProductDto);
   }
 
   // @Delete(':id')
