@@ -5,7 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { RpcCustomExceptionFilter } from './common/dto';
 
 async function bootstrap() {
-  const logger = new Logger('Main-Gateway');
+  const logger = new Logger('API Gateway Main');
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
