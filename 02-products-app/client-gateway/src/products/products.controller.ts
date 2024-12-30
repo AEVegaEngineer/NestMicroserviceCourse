@@ -9,12 +9,9 @@ import {
   Inject,
   Query,
   ParseIntPipe,
-  BadGatewayException,
-  NotFoundException,
-  InternalServerErrorException,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { PaginationDto } from 'src/common/dto';
 import { PRODUCTS_SERVICE } from 'src/config';
 
@@ -39,19 +36,22 @@ export class ProductsController {
 
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: string) {
+    // Se puede trabajar con Observables
+    // return this.productsService
+    //   .send({ cmd: 'find_product_by_id' }, { id })
+    //   .pipe(
+    //     catchError((error) => {
+    //       throw new RpcException(error);
+    //     }),
+    //   );
+
     try {
       const product = await firstValueFrom(
         this.productsService.send({ cmd: 'find_product_by_id' }, { id }),
       );
       return product;
     } catch (error) {
-      if (error.code === 'P2025') {
-        // https://www.prisma.io/docs/orm/reference/error-reference#p2025
-        throw new NotFoundException(`Product with id #${id} not found`);
-      }
-      throw new InternalServerErrorException(
-        `Product with id #${id} could not be updated: ${error.message}`,
-      );
+      throw new RpcException(error);
     }
   }
 

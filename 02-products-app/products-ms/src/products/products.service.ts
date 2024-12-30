@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -59,8 +60,8 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       .catch((error) => {
         this.logger.error(error);
         throw new RpcException({
-          ...error,
           message: `Product with id #${id} not found`,
+          status: HttpStatus.NOT_FOUND,
         });
       });
     return product;
