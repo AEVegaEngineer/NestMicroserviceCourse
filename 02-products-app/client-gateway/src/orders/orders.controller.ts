@@ -12,8 +12,7 @@ import {
 } from '@nestjs/common';
 import { ClientProxy, Payload, RpcException } from '@nestjs/microservices';
 import { ORDERS_SERVICE } from 'src/config';
-import { CreateOrderDto } from './dto';
-import { PaginationDto } from 'src/common/dto';
+import { CreateOrderDto, OrderPaginationDto } from './dto';
 import { firstValueFrom } from 'rxjs';
 
 @Controller('orders')
@@ -28,9 +27,9 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
+  findAll(@Query() orderPaginationDto: OrderPaginationDto) {
     return this.ordersService.send('findAllOrders', {
-      /*limit: 50 , page: 2*/ ...paginationDto,
+      /*limit: 50 , page: 2*/ ...orderPaginationDto,
     });
   }
 
