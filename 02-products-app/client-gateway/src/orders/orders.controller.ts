@@ -65,13 +65,20 @@ export class OrdersController {
   }
 
   @Patch(':id')
-  chageOrderStatus(
+  async chageOrderStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() changeOrderStatusDto,
+    @Body() statusDto: StatusDto,
   ) {
-    return this.ordersService.send(
-      { cmd: 'changeOrderStatus' },
-      { id, ...changeOrderStatusDto },
-    );
+    try {
+      const updatedOrder = await firstValueFrom(
+        this.ordersService.send('changeOrderStatus', {
+          id,
+          status: statusDto.status,
+        }),
+      );
+      return updatedOrder;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 }

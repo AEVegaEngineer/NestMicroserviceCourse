@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto';
 import { RpcException } from '@nestjs/microservices';
 import { OrderPaginationDto } from './dto/order-pagination.dto';
+import { ChangeOrderStatusDto } from './dto/change-order-status.dto';
 
 @Injectable()
 export class OrdersService extends PrismaClient implements OnModuleInit {
@@ -62,5 +63,24 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
         });
       });
     return order;
+  }
+
+  async chageOrderStatus(changeOrderStatusDto: ChangeOrderStatusDto) {
+    const { id, status } = changeOrderStatusDto;
+    const order = await this.findOne(id);
+
+    if (order.status === status) {
+      throw new RpcException({
+        message: `Order with id #${id} already has status ${status}`,
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    return this.order.update({
+      where: { id: id },
+      data: {
+        status: status,
+      },
+    });
   }
 }

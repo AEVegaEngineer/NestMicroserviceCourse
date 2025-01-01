@@ -8,6 +8,7 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaginationDto } from 'src/common/dto';
 import { OrderPaginationDto } from './dto/order-pagination.dto';
+import { ChangeOrderStatusDto } from './dto/change-order-status.dto';
 
 @Controller()
 export class OrdersController {
@@ -29,7 +30,7 @@ export class OrdersController {
   }
 
   @MessagePattern('changeOrderStatus')
-  chageOrderStatus(@Payload() changeOrderStatusDto) {
-    throw new NotImplementedException();
+  chageOrderStatus(@Payload() changeOrderStatusDto: ChangeOrderStatusDto) {
+    return this.ordersService.chageOrderStatus(changeOrderStatusDto);
   }
 }
