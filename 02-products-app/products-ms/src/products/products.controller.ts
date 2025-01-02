@@ -49,4 +49,9 @@ export class ProductsController {
   softRemove(@Payload('id', ParseIntPipe) id: number) {
     return this.productsService.softRemove(id);
   }
+
+  @MessagePattern({ cmd: 'validate_products' })
+  validateProducts(@Payload() ids: number[]) {
+    return this.productsService.validateProducts(ids);
+  }
 }
