@@ -11,8 +11,14 @@
 
 ### Dev
 
-1. Clone the repo
-2. Install dependencies
-3. Create a `.env` file in the root of the project based of the content in the `.env.template` file
-4. Execute `npx prisma migrate dev` to create the database
-5. Execute `npm run start:dev` to start the server
+1. Clonar el repositorio
+2. Instalar las dependencias
+3. Crear un archivo `.env` en el root del proyecto basado en el archivo `.env.template`
+4. Levantar el servidor de NATS
+
+```
+docker run -d --name nats-main -p 4222:4222 -p 6222:6222 -p 8222:8222 nats
+```
+
+5. Execute `npx prisma migrate dev` to create the database
+6. Execute `npm run start:dev` to start the server
