@@ -11,23 +11,21 @@ import {
   Query,
 } from '@nestjs/common';
 import { ClientProxy, Payload, RpcException } from '@nestjs/microservices';
-import { ORDERS_SERVICE } from 'src/config';
+import { NATS_SERVICE } from 'src/config';
 import { CreateOrderDto, OrderPaginationDto, StatusDto } from './dto';
 import { firstValueFrom } from 'rxjs';
 import { PaginationDto } from 'src/common/dto';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    @Inject(ORDERS_SERVICE) private readonly ordersService: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_SERVICE) private readonly natsClient: ClientProxy) {}
 
   @Post()
   async create(@Payload() createOrderDto: CreateOrderDto) {
-    // return this.ordersService.send('createOrder', createOrderDto);
+    // return this.natsClient.send('createOrder', createOrderDto);
     try {
       const createdOrder = await firstValueFrom(
-        this.ordersService.send('createOrder', createOrderDto),
+        this.natsClient.send('createOrder', createOrderDto),
       );
       return createdOrder;
     } catch (error) {
@@ -37,7 +35,7 @@ export class OrdersController {
 
   @Get()
   findAll(@Query() orderPaginationDto: OrderPaginationDto) {
-    return this.ordersService.send('findAllOrders', {
+    return this.natsClient.send('findAllOrders', {
       /*limit: 50 , page: 2*/ ...orderPaginationDto,
     });
   }
@@ -46,7 +44,7 @@ export class OrdersController {
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     try {
       const order = await firstValueFrom(
-        this.ordersService.send('findOneOrder', { id }),
+        this.natsClient.send('findOneOrder', { id }),
       );
       return order;
     } catch (error) {
@@ -61,7 +59,7 @@ export class OrdersController {
   ) {
     try {
       const order = await firstValueFrom(
-        this.ordersService.send('findAllOrders', {
+        this.natsClient.send('findAllOrders', {
           ...paginationDto,
           status: statusDto.status,
         }),
@@ -79,7 +77,7 @@ export class OrdersController {
   ) {
     try {
       const updatedOrder = await firstValueFrom(
-        this.ordersService.send('changeOrderStatus', {
+        this.natsClient.send('changeOrderStatus', {
           id,
           status: statusDto.status,
         }),
