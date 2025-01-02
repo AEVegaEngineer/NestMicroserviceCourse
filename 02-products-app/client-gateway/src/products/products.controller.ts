@@ -13,20 +13,18 @@ import {
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { PaginationDto } from 'src/common/dto';
-import { PRODUCTS_SERVICE } from 'src/config';
+import { NATS_SERVICE } from 'src/config';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
 @Controller('products')
 export class ProductsController {
-  constructor(
-    @Inject(PRODUCTS_SERVICE) private readonly productsService: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_SERVICE) private readonly natsClient: ClientProxy) {}
   @Post()
   async createProduct(@Body() createProductDto: CreateProductDto) {
     try {
       const product = await firstValueFrom(
-        this.productsService.send({ cmd: 'create_product' }, createProductDto),
+        this.natsClient.send({ cmd: 'create_product' }, createProductDto),
       );
       return product;
     } catch (error) {
@@ -36,7 +34,7 @@ export class ProductsController {
 
   @Get()
   findAll(@Query() paginationDto: PaginationDto) {
-    return this.productsService.send(
+    return this.natsClient.send(
       { cmd: 'find_all_products' },
       { /*limit: 50 , page: 2*/ ...paginationDto },
     );
@@ -55,7 +53,7 @@ export class ProductsController {
 
     try {
       const product = await firstValueFrom(
-        this.productsService.send({ cmd: 'find_product_by_id' }, { id }),
+        this.natsClient.send({ cmd: 'find_product_by_id' }, { id }),
       );
       return product;
     } catch (error) {
@@ -70,7 +68,7 @@ export class ProductsController {
   ) {
     try {
       const product = await firstValueFrom(
-        this.productsService.send(
+        this.natsClient.send(
           { cmd: 'update_product' },
           { id, ...updateProductDto },
         ),
@@ -85,7 +83,7 @@ export class ProductsController {
   async remove(@Param('id') id: string) {
     try {
       const product = await firstValueFrom(
-        this.productsService.send({ cmd: 'delete_product' }, { id }),
+        this.natsClient.send({ cmd: 'delete_product' }, { id }),
       );
       return product;
     } catch (error) {
@@ -97,7 +95,7 @@ export class ProductsController {
   async softRemove(@Param('id') id: string) {
     try {
       const product = await firstValueFrom(
-        this.productsService.send({ cmd: 'soft_delete_product' }, { id }),
+        this.natsClient.send({ cmd: 'soft_delete_product' }, { id }),
       );
       return product;
     } catch (error) {
