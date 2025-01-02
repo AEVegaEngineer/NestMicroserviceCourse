@@ -28,12 +28,68 @@ export class OrdersService extends PrismaClient implements OnModuleInit {
     this.logger.log('Connected to database');
   }
   async create(createOrderDto: CreateOrderDto) {
-    const ids = [7, 8];
-    const products = await firstValueFrom(
-      this.productsService.send({ cmd: 'validate_products' }, ids),
-    );
+    try {
+      //1. Confirmar que los productos existen
+      const productIds = createOrderDto.items.map((item) => item.productId);
+      const products = await firstValueFrom(
+        this.productsService.send({ cmd: 'validate_products' }, productIds),
+      );
+      // return products;
 
-    return products;
+      //2. Calcular los totales de productos
+      const totalAmount = createOrderDto.items.reduce((acc, orderItem) => {
+        const price = products.find(
+          (product) => product.id === orderItem.productId,
+        ).price;
+        return acc + price * orderItem.quantity;
+      }, 0);
+
+      const totalItems = createOrderDto.items.reduce((acc, orderItem) => {
+        return acc + orderItem.quantity;
+      }, 0);
+
+      //3. Crear una transaccion de base de datos
+      const order = await this.order.create({
+        data: {
+          totalAmount: totalAmount,
+          totalItems: totalItems,
+          OrderItem: {
+            createMany: {
+              data: createOrderDto.items.map((orderItem) => ({
+                price: products.find(
+                  (product) => product.id === orderItem.productId,
+                ).price,
+                productId: orderItem.productId,
+                quantity: orderItem.quantity,
+              })),
+            },
+          },
+        },
+        include: {
+          OrderItem: {
+            select: {
+              productId: true,
+              quantity: true,
+              price: true,
+            },
+          },
+        },
+      });
+
+      return {
+        ...order,
+        OrderItem: order.OrderItem.map((orderItem) => ({
+          ...orderItem,
+          name: products.find((product) => product.id === orderItem.productId)
+            .name,
+        })),
+      };
+    } catch (error) {
+      throw new RpcException({
+        message: `Products could not be validated: ${error.message}`,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
 
     // return { service: 'orders', data: createOrderDto };
     // return this.order.create({ data: createOrderDto });
