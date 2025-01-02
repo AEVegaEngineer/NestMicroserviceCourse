@@ -8,7 +8,10 @@ async function bootstrap() {
   const logger = new Logger('Products Main');
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
-    { transport: Transport.TCP, options: { port: envs.port } },
+    {
+      transport: Transport.NATS,
+      options: { servers: envs.natsServers },
+    },
   );
   app.useGlobalPipes(
     new ValidationPipe({
