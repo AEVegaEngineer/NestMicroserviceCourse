@@ -1,6 +1,12 @@
 version: '3'
 
 services:
+  nats-server:
+    image: nats:latest
+    ports:
+      - 8222:8222
+
+    
   client-gateway:
     build: ./client-gateway
     ports:
@@ -10,4 +16,17 @@ services:
     command: npm run start:dev
     environment:
       - PORT=3000
-      - NATS_SERVERS=nats://nats-main:4222
+      - NATS_SERVERS=nats://nats-server:4222
+
+  products-ms:
+    build: ./products-ms
+    ports:
+      - 3001:3001
+    volumes:
+      - ./products-ms/src:/usr/src/app/src
+      # - ./products-ms/prisma:/usr/src/app/prisma
+    command: npm run start:dev
+    environment:
+      - PORT=3001
+      - NATS_SERVERS=nats://nats-server:4222
+      - DATABASE_URL=file:./dev.db
